@@ -50,7 +50,16 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *~
+
+# Frontend Build & Local files
+dist/
+dist-ssr/
+*.local
 
 # Vite
 .vite/
@@ -63,6 +72,13 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Frontend Debug Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # Temporary files
 tmp/
