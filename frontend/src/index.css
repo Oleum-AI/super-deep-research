@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium shadow-sm;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+  }
+  
+  .input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+  }
+}
+
+/* Markdown styling */
+.markdown-content {
+  @apply prose prose-sm sm:prose lg:prose-lg max-w-none;
+}
+
+.markdown-content h1 {
+  @apply text-3xl font-bold mt-8 mb-4;
+}
+
+.markdown-content h2 {
+  @apply text-2xl font-semibold mt-6 mb-3;
+}
+
+.markdown-content h3 {
+  @apply text-xl font-medium mt-4 mb-2;
+}
+
+.markdown-content p {
+  @apply mb-4 leading-relaxed;
+}
+
+.markdown-content ul {
+  @apply list-disc pl-6 mb-4;
+}
+
+.markdown-content ol {
+  @apply list-decimal pl-6 mb-4;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-gray-300 pl-4 italic my-4;
+}
+
+.markdown-content code {
+  @apply bg-gray-100 px-1 py-0.5 rounded text-sm;
+}
+
+.markdown-content pre {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0;
+}

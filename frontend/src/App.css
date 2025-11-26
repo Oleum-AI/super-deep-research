@@ -1,0 +1,492 @@
+/**
+ * Application styles
+ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.app-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 40px;
+}
+
+.app-header h1 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.app-main {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  min-height: 400px;
+}
+
+.error-banner {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* Research Form */
+.research-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.provider-checkboxes {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 15px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.checkbox-label:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.form-group input[type="range"] {
+  width: 100%;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Research Section */
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #eee;
+}
+
+.reset-button {
+  padding: 10px 20px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.reset-button:hover {
+  background: #e8e8e8;
+}
+
+.query-display {
+  margin-bottom: 30px;
+  padding: 15px;
+  background: #f8f9ff;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.query-text {
+  color: #666;
+  font-style: italic;
+}
+
+/* Research Progress */
+.research-progress {
+  margin-bottom: 40px;
+}
+
+.research-progress h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.providers-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.provider-status {
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  transition: all 0.3s;
+}
+
+.provider-status.completed {
+  border-color: #4caf50;
+  background: #f1f8f4;
+}
+
+.provider-status.failed {
+  border-color: #f44336;
+  background: #fef1f1;
+}
+
+.provider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.provider-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.error-message {
+  color: #f44336;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.completion-info {
+  color: #4caf50;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+/* Reports Section */
+.reports-section,
+.synthesis-section {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 2px solid #eee;
+}
+
+.reports-section h2,
+.synthesis-section h2 {
+  margin-bottom: 25px;
+  color: #333;
+}
+
+/* Report Comparison */
+.provider-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  padding: 12px 24px;
+  background: #f5f5f5;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab-button:hover {
+  background: #e8e8e8;
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+}
+
+.citation-count {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.no-reports {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* Report Viewer */
+.report-viewer {
+  background: #fafafa;
+  padding: 30px;
+  border-radius: 8px;
+}
+
+.report-title {
+  margin-bottom: 25px;
+  color: #333;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #ddd;
+}
+
+.report-content {
+  line-height: 1.8;
+  color: #333;
+}
+
+.report-content h1,
+.report-content h2,
+.report-content h3 {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  color: #222;
+}
+
+.report-content p {
+  margin-bottom: 15px;
+}
+
+.report-content ul,
+.report-content ol {
+  margin-left: 25px;
+  margin-bottom: 15px;
+}
+
+.report-content blockquote {
+  border-left: 4px solid #667eea;
+  padding-left: 20px;
+  margin: 20px 0;
+  color: #555;
+  font-style: italic;
+}
+
+.report-content code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+.citations {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 2px solid #ddd;
+}
+
+.citations h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.citation-item {
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.citation-item a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.citation-item a:hover {
+  text-decoration: underline;
+}
+
+.citation-snippet {
+  margin-top: 5px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Master Report Generator */
+.generation-controls {
+  text-align: center;
+  padding: 40px;
+}
+
+.generation-controls h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.generation-controls p {
+  margin-bottom: 30px;
+  color: #666;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.provider-selection {
+  margin-bottom: 25px;
+}
+
+.provider-selection label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #333;
+}
+
+.provider-selection select {
+  padding: 10px 15px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  min-width: 250px;
+}
+
+.generate-button {
+  padding: 15px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.generate-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.generate-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Footer */
+.app-footer {
+  text-align: center;
+  color: white;
+  margin-top: 40px;
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app {
+    padding: 10px;
+  }
+
+  .app-header h1 {
+    font-size: 2rem;
+  }
+
+  .app-main {
+    padding: 20px;
+  }
+
+  .provider-checkboxes {
+    flex-direction: column;
+  }
+
+  .session-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .providers-status {
+    grid-template-columns: 1fr;
+  }
+
+  .provider-tabs {
+    flex-direction: column;
+  }
+}

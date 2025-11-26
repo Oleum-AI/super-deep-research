@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+openai
+anthropic
+groq
+python-dotenv
+aiohttp
