@@ -17,8 +17,12 @@ class AnthropicProvider(BaseProvider):
         topic: str, 
         max_tokens: int = 8000,
         include_web_search: bool = True
-    ) -> str:
-        """Generate a comprehensive research report using Anthropic Claude Sonnet 4.5"""
+    ) -> Dict[str, Optional[str]]:
+        """Generate a comprehensive research report using Anthropic Claude Sonnet 4.5
+        
+        Returns:
+            Dict with 'content' (the report) and 'thinking' (reasoning process, if any)
+        """
         
         # Claude Sonnet 4.5 supports max 64K output tokens
         # Use a safe limit based on user request, capped at 16K for performance
@@ -35,7 +39,7 @@ class AnthropicProvider(BaseProvider):
         
         system_prompt = self.get_research_system_prompt()
         
-        # Prepare the research query
+        # Prepare the research query with citation requirements
         user_message = f"""Please conduct comprehensive research on the following topic and create a detailed report:
 
 Topic: {topic}
@@ -46,7 +50,8 @@ Requirements:
 - Structure the report with clear sections
 - Make it comprehensive (aim for {(safe_max_tokens - thinking_budget) // 4} words)
 - Use markdown formatting
-- Include citations where appropriate
+- IMPORTANT: Use inline citations [1], [2], etc. throughout your report
+- IMPORTANT: Include a ## References section at the end with all cited sources
 - Explore historical context, current state, and future projections
 - Identify key stakeholders and their perspectives
 - Analyze potential impacts and implications
@@ -57,7 +62,7 @@ Requirements:
         if include_web_search:
             user_message += """
 
-Note: While I'll structure this as if I've conducted web searches and gathered recent data, please understand that I'll be drawing from my training data and using reasonable estimates where specific current data isn't available. I'll clearly indicate when I'm making projections or estimates.
+Note: While I'll structure this as if I've conducted web searches and gathered recent data, please understand that I'll be drawing from my training data and using reasonable estimates where specific current data isn't available. I'll clearly indicate when I'm making projections or estimates. Generate plausible source citations for your claims.
 """
         
         # Generate the research report using Claude Sonnet 4.5 with extended thinking
@@ -79,20 +84,22 @@ Note: While I'll structure this as if I've conducted web searches and gathered r
             }
         )
         
-        # Extract the text content
+        # Extract content and thinking SEPARATELY
+        content = ""
+        thinking = None
+        
         if response.content and len(response.content) > 0:
-            # Combine thinking and response if thinking is present
-            full_response = ""
             for block in response.content:
                 if block.type == "thinking":
-                    # Optionally include thinking process as a collapsed section
-                    full_response += f"\n\n<details>\n<summary>🧠 Reasoning Process</summary>\n\n{block.thinking}\n\n</details>\n\n"
+                    # Store thinking separately instead of embedding in content
+                    thinking = block.thinking
                 elif block.type == "text":
-                    full_response += block.text
-            
-            return full_response if full_response else "Failed to generate report"
+                    content += block.text
         
-        return "Failed to generate report"
+        if not content:
+            content = "Failed to generate report"
+        
+        return {"content": content, "thinking": thinking}
     
     def get_research_system_prompt(self) -> str:
         """Enhanced system prompt for Anthropic Claude"""

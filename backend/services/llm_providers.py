@@ -1,4 +1,4 @@
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from models import Provider
 from services.openai_provider import OpenAIProvider
 from services.anthropic_provider import AnthropicProvider
@@ -42,8 +42,12 @@ class LLMProviderService:
         topic: str,
         max_tokens: int = 8000,
         include_web_search: bool = True
-    ) -> str:
-        """Generate a research report using the specified provider"""
+    ) -> Dict[str, Optional[str]]:
+        """Generate a research report using the specified provider
+        
+        Returns:
+            Dict with 'content' (the report) and 'thinking' (reasoning/metadata, if any)
+        """
         provider_instance = self.get_provider(provider)
         
         if not provider_instance:

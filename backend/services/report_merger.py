@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Set, Tuple
+from typing import List, Dict, Set, Tuple, Optional
 from dataclasses import dataclass
 from collections import defaultdict
 import hashlib
@@ -7,6 +7,16 @@ from datetime import datetime
 
 from models import Provider, ProviderReport
 from services.llm_providers import LLMProviderService
+
+
+@dataclass
+class MasterReportResult:
+    """Result of master report generation with content and thinking separated"""
+    content: str
+    thinking: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Optional[str]]:
+        return {"content": self.content, "thinking": self.thinking}
 
 @dataclass
 class Section:
@@ -28,8 +38,12 @@ class ReportMerger:
         self.merge_provider = merge_provider
         self.llm_service = LLMProviderService()
     
-    async def merge_reports(self, reports: List[ProviderReport]) -> str:
-        """Merge multiple provider reports into a single comprehensive report"""
+    async def merge_reports(self, reports: List[ProviderReport]) -> MasterReportResult:
+        """Merge multiple provider reports into a single comprehensive report
+        
+        Returns:
+            MasterReportResult with content and thinking separated
+        """
         
         # Parse all reports into sections
         all_sections = []
@@ -45,9 +59,9 @@ class ReportMerger:
         merged_sections = await self.merge_section_groups(grouped_sections)
         
         # Generate the final merged report
-        master_report = await self.generate_master_report(merged_sections, reports)
+        master_report_result = await self.generate_master_report(merged_sections, reports)
         
-        return master_report
+        return master_report_result
     
     def parse_report_sections(self, content: str, provider: Provider) -> List[Section]:
         """Parse markdown content into sections"""
@@ -183,6 +197,8 @@ Please:
 3. Remove redundant information
 4. Create a well-structured, unified section
 5. Maintain factual accuracy and cite sources when there are disagreements
+6. IMPORTANT: Preserve all inline citations [1], [2], etc. from the original sections
+7. IMPORTANT: Keep track of all references for the final References section
 
 Section Title: {sections[0].title}
 
@@ -190,14 +206,17 @@ Section Title: {sections[0].title}
         for section in unique_contents.values():
             merge_prompt += f"\n---\nFrom {section.provider.value}:\n{section.content}\n"
         
-        merge_prompt += "\n---\nPlease provide the merged section content:"
+        merge_prompt += "\n---\nPlease provide the merged section content (preserve all citations):"
         
         try:
-            merged_content = await provider.generate_research_report(
+            # Provider now returns Dict with content and thinking
+            result = await provider.generate_research_report(
                 topic=merge_prompt,
                 max_tokens=2000,
                 include_web_search=False
             )
+            # Discard intermediate thinking, just use content
+            merged_content = result.get("content", "") if isinstance(result, dict) else result
             
             return {
                 "title": sections[0].title,
@@ -218,13 +237,20 @@ Section Title: {sections[0].title}
                 "sources": [s.provider for s in sections]
             }
     
-    async def generate_master_report(self, merged_sections: List[Dict], original_reports: List[ProviderReport]) -> str:
-        """Generate the final master report"""
+    async def generate_master_report(self, merged_sections: List[Dict], original_reports: List[ProviderReport]) -> MasterReportResult:
+        """Generate the final master report
+        
+        Returns:
+            MasterReportResult with content and thinking separated
+        """
         provider = self.llm_service.get_provider(self.merge_provider)
         
         if not provider:
             # Fallback: create a simple structured report
-            return self.create_fallback_report(merged_sections, original_reports)
+            return MasterReportResult(
+                content=self.create_fallback_report(merged_sections, original_reports),
+                thinking=None
+            )
         
         # Create a summary of what we have
         section_summary = "\n".join([
@@ -243,6 +269,8 @@ Please create:
 2. A well-structured report that incorporates all the merged sections
 3. A conclusion that synthesizes insights from all providers
 4. Recommendations based on the collective analysis
+5. IMPORTANT: Consolidate all citations and create a unified ## References section at the end
+6. IMPORTANT: Renumber citations [1], [2], etc. to be consistent throughout the merged report
 
 The merged sections content is provided below. Please integrate them into a cohesive, professional research report.
 
@@ -253,23 +281,35 @@ The merged sections content is provided below. Please integrate them into a cohe
         for section in merged_sections:
             generation_prompt += f"\n## {section['title']}\n{section['content']}\n"
         
-        generation_prompt += "\n---\nPlease generate the complete master report:"
+        generation_prompt += "\n---\nPlease generate the complete master report with a unified References section:"
         
         try:
-            master_report = await provider.generate_research_report(
+            # Provider now returns Dict with content and thinking
+            result = await provider.generate_research_report(
                 topic=generation_prompt,
                 max_tokens=10000,
                 include_web_search=False
             )
             
-            # Add metadata footer
-            master_report += self.create_metadata_footer(original_reports)
+            # Extract content and thinking
+            if isinstance(result, dict):
+                master_content = result.get("content", "")
+                master_thinking = result.get("thinking")
+            else:
+                master_content = result
+                master_thinking = None
             
-            return master_report
+            # Add metadata footer to content
+            master_content += self.create_metadata_footer(original_reports)
+            
+            return MasterReportResult(content=master_content, thinking=master_thinking)
             
         except Exception as e:
             # Fallback on error
-            return self.create_fallback_report(merged_sections, original_reports)
+            return MasterReportResult(
+                content=self.create_fallback_report(merged_sections, original_reports),
+                thinking=None
+            )
     
     def create_fallback_report(self, merged_sections: List[Dict], original_reports: List[ProviderReport]) -> str:
         """Create a fallback report when LLM merging fails"""

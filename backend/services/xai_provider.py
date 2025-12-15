@@ -22,8 +22,12 @@ class XAIProvider(BaseProvider):
         topic: str, 
         max_tokens: int = 8000,
         include_web_search: bool = True
-    ) -> str:
-        """Generate a comprehensive research report using xAI Grok"""
+    ) -> Dict[str, Optional[str]]:
+        """Generate a comprehensive research report using xAI Grok
+        
+        Returns:
+            Dict with 'content' (the report) and 'thinking' (None for xAI as it doesn't expose reasoning)
+        """
         
         # Grok supports large output, but use reasonable limit
         safe_max_tokens = min(max_tokens, 8192)
@@ -45,7 +49,8 @@ Requirements:
 - Structure the report with clear sections
 - Make it comprehensive (aim for {safe_max_tokens // 4} words)
 - Use markdown formatting
-- Include citations where appropriate
+- IMPORTANT: Use inline citations [1], [2], etc. throughout your report
+- IMPORTANT: Include a ## References section at the end with all cited sources
 - Focus on technical accuracy and scientific rigor
 - Include mathematical or computational aspects where relevant
 - Discuss cutting-edge developments and research frontiers
@@ -72,9 +77,11 @@ Requirements:
                 result = response.json()
                 
                 if "choices" in result and len(result["choices"]) > 0:
-                    return result["choices"][0]["message"]["content"]
+                    content = result["choices"][0]["message"]["content"]
+                    # xAI/Grok doesn't expose thinking, so return None
+                    return {"content": content, "thinking": None}
                 else:
-                    return f"Error: Unexpected response format from xAI: {result}"
+                    return {"content": f"Error: Unexpected response format from xAI: {result}", "thinking": None}
                 
             except httpx.HTTPStatusError as e:
                 error_detail = ""
@@ -83,13 +90,13 @@ Requirements:
                     error_detail = f" - {error_body.get('error', {}).get('message', str(error_body))}"
                 except:
                     error_detail = f" - {e.response.text[:200]}"
-                return f"Error generating report with xAI: {e.response.status_code} {e.response.reason_phrase}{error_detail}"
+                return {"content": f"Error generating report with xAI: {e.response.status_code} {e.response.reason_phrase}{error_detail}", "thinking": None}
             except httpx.RequestError as e:
-                return f"Error generating report with xAI: Network error - {str(e)}"
+                return {"content": f"Error generating report with xAI: Network error - {str(e)}", "thinking": None}
             except Exception as e:
-                return f"Unexpected error with xAI: {str(e)}"
+                return {"content": f"Unexpected error with xAI: {str(e)}", "thinking": None}
         
-        return "Failed to generate report"
+        return {"content": "Failed to generate report", "thinking": None}
     
     def get_research_system_prompt(self) -> str:
         """Enhanced system prompt for xAI"""

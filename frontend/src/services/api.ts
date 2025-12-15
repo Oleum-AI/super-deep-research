@@ -53,6 +53,7 @@ export const researchApi = {
       id: report.id,
       provider: report.provider,
       content: report.content,
+      thinking: report.thinking,  // LLM reasoning/metadata
       status: report.status,
       errorMessage: report.error_message,
       createdAt: report.created_at
@@ -71,6 +72,7 @@ export const researchApi = {
     return {
       id: response.data.id,
       content: response.data.content,
+      thinking: response.data.thinking,  // LLM reasoning/metadata
       createdAt: response.data.created_at
     };
   },
@@ -91,3 +93,4 @@ export const researchApi = {
 };
 
 export default api;
+

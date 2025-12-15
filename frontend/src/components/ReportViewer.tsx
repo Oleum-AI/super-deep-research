@@ -5,7 +5,12 @@ import remarkGfm from 'remark-gfm';
 import { Tab } from '@headlessui/react';
 import { ProviderReport, Provider } from '../types';
 import { researchApi } from '../services/api';
-import { DocumentTextIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { 
+  DocumentTextIcon, 
+  ChevronDownIcon, 
+  ChevronUpIcon,
+  LightBulbIcon 
+} from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
 interface ReportViewerProps {
@@ -14,6 +19,7 @@ interface ReportViewerProps {
 
 const ReportViewer: React.FC<ReportViewerProps> = ({ sessionId }) => {
   const [expandedReports, setExpandedReports] = useState<Set<number>>(new Set());
+  const [expandedThinking, setExpandedThinking] = useState<Set<number>>(new Set());
 
   const { data: reports, isLoading, error } = useQuery(
     ['providerReports', sessionId],
@@ -29,23 +35,41 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ sessionId }) => {
       color: 'border-green-500 bg-green-50',
       textColor: 'text-green-700',
       bgColor: 'bg-green-500',
+      thinkingBg: 'bg-green-100',
+      thinkingBorder: 'border-green-300',
     },
     [Provider.ANTHROPIC]: {
       name: 'Claude Sonnet 4.5',
       color: 'border-purple-500 bg-purple-50',
       textColor: 'text-purple-700',
       bgColor: 'bg-purple-500',
+      thinkingBg: 'bg-purple-100',
+      thinkingBorder: 'border-purple-300',
     },
     [Provider.XAI]: {
       name: 'xAI Grok 2',
       color: 'border-blue-500 bg-blue-50',
       textColor: 'text-blue-700',
       bgColor: 'bg-blue-500',
+      thinkingBg: 'bg-blue-100',
+      thinkingBorder: 'border-blue-300',
     },
   };
 
   const toggleExpanded = (reportId: number) => {
     setExpandedReports((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(reportId)) {
+        newSet.delete(reportId);
+      } else {
+        newSet.add(reportId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleThinking = (reportId: number) => {
+    setExpandedThinking((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(reportId)) {
         newSet.delete(reportId);
@@ -118,6 +142,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ sessionId }) => {
             {completedReports.map((report) => {
               const info = providerInfo[report.provider];
               const isExpanded = expandedReports.has(report.id);
+              const isThinkingExpanded = expandedThinking.has(report.id);
               const contentPreview = report.content?.substring(0, 500) || '';
               const hasMore = (report.content?.length || 0) > 500;
 
@@ -153,8 +178,45 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ sessionId }) => {
                       )}
                     </div>
 
+                    {/* Thinking/Reasoning Section - Shown Separately */}
+                    {report.thinking && (
+                      <div className={clsx('rounded-lg border overflow-hidden', info.thinkingBorder)}>
+                        <button
+                          onClick={() => toggleThinking(report.id)}
+                          className={clsx(
+                            'w-full flex items-center justify-between p-3',
+                            info.thinkingBg,
+                            'hover:opacity-80 transition-opacity'
+                          )}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <LightBulbIcon className={clsx('h-4 w-4', info.textColor)} />
+                            <span className={clsx('text-sm font-medium', info.textColor)}>
+                              AI Reasoning Process
+                            </span>
+                          </div>
+                          {isThinkingExpanded ? (
+                            <ChevronUpIcon className={clsx('h-4 w-4', info.textColor)} />
+                          ) : (
+                            <ChevronDownIcon className={clsx('h-4 w-4', info.textColor)} />
+                          )}
+                        </button>
+                        
+                        {isThinkingExpanded && (
+                          <div className="p-3 bg-white/50 border-t border-gray-200">
+                            <div className="prose prose-sm max-w-none text-gray-700">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {report.thinking}
+                              </ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Report Content */}
                     <div className={clsx(
-                      'markdown-content prose prose-sm max-w-none',
+                      'markdown-content prose prose-sm max-w-none bg-white/50 p-4 rounded-lg',
                       !isExpanded && hasMore && 'max-h-96 overflow-hidden relative'
                     )}>
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -166,7 +228,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ sessionId }) => {
                       )}
                     </div>
 
-                    <div className="text-xs text-gray-500 pt-4 border-t">
+                    <div className="text-xs text-gray-500 pt-4 border-t border-gray-200">
                       Generated at: {new Date(report.createdAt).toLocaleString()}
                     </div>
                   </div>

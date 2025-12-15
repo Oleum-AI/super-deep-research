@@ -42,6 +42,7 @@ class ProviderReport(Base):
     session_id = Column(String, ForeignKey("research_sessions.id"))
     provider = Column(SQLEnum(Provider), nullable=False)
     content = Column(Text)
+    thinking = Column(Text, nullable=True)  # Stores LLM reasoning/metadata separately
     status = Column(SQLEnum(ResearchStatus), default=ResearchStatus.PENDING)
     error_message = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -55,6 +56,7 @@ class MasterReport(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String, ForeignKey("research_sessions.id"), unique=True)
     content = Column(Text)
+    thinking = Column(Text, nullable=True)  # Stores LLM reasoning/metadata separately
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -81,6 +83,7 @@ class ProviderReportResponse(BaseModel):
     id: int
     provider: Provider
     content: Optional[str]
+    thinking: Optional[str] = None  # LLM reasoning/metadata shown separately
     status: ResearchStatus
     error_message: Optional[str]
     created_at: datetime
@@ -91,6 +94,7 @@ class ProviderReportResponse(BaseModel):
 class MasterReportResponse(BaseModel):
     id: int
     content: str
+    thinking: Optional[str] = None  # LLM reasoning/metadata shown separately
     created_at: datetime
     
     class Config:

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQuery } from 'react-query';
+import { useMutation } from 'react-query';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import toast from 'react-hot-toast';
@@ -9,17 +9,23 @@ import {
   DocumentArrowDownIcon, 
   DocumentMagnifyingGlassIcon,
   SparklesIcon,
-  CheckIcon
+  CheckIcon,
+  ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  LightBulbIcon
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
 interface MasterReportProps {
   sessionId: string;
+  onBack?: () => void;  // Callback to return to individual reports
 }
 
-const MasterReport: React.FC<MasterReportProps> = ({ sessionId }) => {
+const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
   const [selectedMergeProvider, setSelectedMergeProvider] = useState<Provider>(Provider.OPENAI);
   const [masterReport, setMasterReport] = useState<MasterReportType | null>(null);
+  const [showThinking, setShowThinking] = useState(false);
 
   // Generate master report mutation
   const generateMutation = useMutation(
@@ -80,11 +86,22 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId }) => {
   if (!masterReport) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        {/* Back Button */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          >
+            <ArrowLeftIcon className="h-4 w-4" />
+            <span>Back to Individual Reports</span>
+          </button>
+        )}
+
         <div className="text-center py-12">
           <DocumentMagnifyingGlassIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Generate Master Report</h3>
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
-            Combine insights from all providers into a single, comprehensive report
+            Combine insights from all providers into a single, comprehensive report with unified citations
           </p>
 
           {/* Provider Selection */}
@@ -154,11 +171,23 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId }) => {
       {/* Master Report Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900">Master Research Report</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Synthesized by {providerOptions.find(p => p.value === selectedMergeProvider)?.name}
-            </p>
+          <div className="flex items-center space-x-4">
+            {/* Back Button */}
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ArrowLeftIcon className="h-4 w-4" />
+                <span className="text-sm">Back to Reports</span>
+              </button>
+            )}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Master Research Report</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Synthesized by {providerOptions.find(p => p.value === selectedMergeProvider)?.name}
+              </p>
+            </div>
           </div>
           <button
             onClick={handleExportPDF}
@@ -184,6 +213,39 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId }) => {
         </div>
       </div>
 
+      {/* Reasoning/Thinking Section - Shown Separately */}
+      {masterReport.thinking && (
+        <div className="bg-amber-50 rounded-lg shadow-sm border border-amber-200 overflow-hidden">
+          <button
+            onClick={() => setShowThinking(!showThinking)}
+            className="w-full flex items-center justify-between p-4 hover:bg-amber-100 transition-colors"
+          >
+            <div className="flex items-center space-x-3">
+              <LightBulbIcon className="h-5 w-5 text-amber-600" />
+              <span className="font-medium text-amber-800">AI Reasoning Process</span>
+              <span className="text-xs text-amber-600 bg-amber-200 px-2 py-0.5 rounded">
+                How this report was generated
+              </span>
+            </div>
+            {showThinking ? (
+              <ChevronUpIcon className="h-5 w-5 text-amber-600" />
+            ) : (
+              <ChevronDownIcon className="h-5 w-5 text-amber-600" />
+            )}
+          </button>
+          
+          {showThinking && (
+            <div className="p-4 pt-0 border-t border-amber-200">
+              <div className="prose prose-sm max-w-none text-amber-900 bg-amber-100/50 p-4 rounded-lg">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {masterReport.thinking}
+                </ReactMarkdown>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Master Report Content */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
         <div className="markdown-content prose prose-lg max-w-none">
@@ -199,15 +261,25 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId }) => {
           <p className="text-sm text-gray-600">
             Want to regenerate with a different provider?
           </p>
-          <button
-            onClick={() => {
-              setMasterReport(null);
-              setSelectedMergeProvider(Provider.OPENAI);
-            }}
-            className="text-primary-600 hover:text-primary-700 font-medium text-sm"
-          >
-            Generate New Report
-          </button>
+          <div className="flex items-center space-x-4">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="text-gray-600 hover:text-gray-900 font-medium text-sm"
+              >
+                View Individual Reports
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setMasterReport(null);
+                setSelectedMergeProvider(Provider.OPENAI);
+              }}
+              className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+            >
+              Generate New Report
+            </button>
+          </div>
         </div>
       </div>
     </div>

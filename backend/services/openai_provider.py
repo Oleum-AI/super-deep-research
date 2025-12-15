@@ -1,4 +1,5 @@
 import json
+from typing import Dict, Optional
 
 import openai
 from models import Provider
@@ -23,8 +24,12 @@ class OpenAIProvider(BaseProvider):
 
     async def generate_research_report(
         self, topic: str, max_tokens: int = 8000, include_web_search: bool = True
-    ) -> str:
-        """Generate a comprehensive research report using OpenAI Deep Research"""
+    ) -> Dict[str, Optional[str]]:
+        """Generate a comprehensive research report using OpenAI Deep Research
+        
+        Returns:
+            Dict with 'content' (the report) and 'thinking' (research metadata, if any)
+        """
 
         # Try to use Deep Research API if available
         if AGENTS_SDK_AVAILABLE and include_web_search:
@@ -37,7 +42,7 @@ class OpenAIProvider(BaseProvider):
         # Fallback to standard GPT-4o
         return await self._standard_research(topic, max_tokens, include_web_search)
 
-    async def _deep_research(self, topic: str) -> str:
+    async def _deep_research(self, topic: str) -> Dict[str, Optional[str]]:
         """Use OpenAI Deep Research API with Agents SDK"""
         import os
 
@@ -61,7 +66,9 @@ Your research should:
 - Include relevant data, statistics, and examples
 - Be well-structured with clear sections
 - Use markdown formatting
-- Include citations from web sources
+- IMPORTANT: Use inline citations [1], [2], etc. for all major claims
+- IMPORTANT: Include a ## References section at the end with all cited sources
+- Include citations from web sources with URLs
 - Provide historical context, current state, and future projections
 - Identify key stakeholders and their perspectives
 - Analyze potential impacts and implications
@@ -92,15 +99,16 @@ Conduct web searches as needed to gather current, accurate information.""",
         # Get final output
         final_output = result_stream.final_output
 
-        # Add metadata about searches performed
+        # Build metadata about the research process (stored separately)
+        thinking = None
         if search_queries:
-            final_output += f"\n\n---\n\n**Research Process**: Performed {len(search_queries)} web searches to gather information.\n"
+            thinking = f"Research Process: Performed {len(search_queries)} web searches to gather information.\n\nSearch queries used:\n" + "\n".join([f"- {q}" for q in search_queries])
 
-        return final_output
+        return {"content": final_output, "thinking": thinking}
 
     async def _standard_research(
         self, topic: str, max_tokens: int = 8000, include_web_search: bool = True
-    ) -> str:
+    ) -> Dict[str, Optional[str]]:
         """Fallback to standard GPT-4o research"""
 
         # GPT-4o supports max 16384 completion tokens, use 4096 as safe default
@@ -120,11 +128,14 @@ Requirements:
 - Structure the report with clear sections
 - Make it comprehensive (aim for {safe_max_tokens // 4} words)
 - Use markdown formatting
-- Include citations where appropriate
+- IMPORTANT: Use inline citations [1], [2], etc. throughout your report
+- IMPORTANT: Include a ## References section at the end with all cited sources
 """,
             },
         ]
 
+        tools_used = []
+        
         # If web search is enabled, make an initial call with tools
         if include_web_search:
             # First, gather information using tools
@@ -144,6 +155,7 @@ Requirements:
                 for tool_call in tool_response.choices[0].message.tool_calls:
                     function_name = tool_call.function.name
                     function_args = json.loads(tool_call.function.arguments)
+                    tools_used.append(f"{function_name}({json.dumps(function_args)})")
 
                     # Simulate tool execution
                     tool_result = await self.simulate_tool_call(
@@ -168,7 +180,14 @@ Requirements:
             frequency_penalty=0.1,
         )
 
-        return response.choices[0].message.content or "Failed to generate report"
+        content = response.choices[0].message.content or "Failed to generate report"
+        
+        # Build thinking/metadata
+        thinking = None
+        if tools_used:
+            thinking = f"Research Process: Used {len(tools_used)} tool calls to gather information.\n\nTools used:\n" + "\n".join([f"- {t}" for t in tools_used])
+        
+        return {"content": content, "thinking": thinking}
 
     def get_research_system_prompt(self) -> str:
         """Enhanced system prompt for OpenAI"""

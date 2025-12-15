@@ -19,6 +19,10 @@ function App() {
     setShowMasterReport(true);
   };
 
+  const handleBackToReports = () => {
+    setShowMasterReport(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -68,7 +72,10 @@ function App() {
 
             {/* Report Viewer */}
             {showMasterReport ? (
-              <MasterReportView sessionId={activeSession.id} />
+              <MasterReportView 
+                sessionId={activeSession.id} 
+                onBack={handleBackToReports}
+              />
             ) : (
               <ReportViewer sessionId={activeSession.id} />
             )}

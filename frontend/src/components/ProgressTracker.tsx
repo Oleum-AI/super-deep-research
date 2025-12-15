@@ -185,7 +185,7 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ sessionId, onComplete
         {progress?.overallStatus === ResearchStatus.COMPLETED && (
           <button
             onClick={onComplete}
-            className="mt-4 w-full btn-primary"
+            className="mt-4 w-full btn-primary py-2 px-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
             Generate Master Report
           </button>
@@ -196,3 +196,4 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ sessionId, onComplete
 };
 
 export default ProgressTracker;
+

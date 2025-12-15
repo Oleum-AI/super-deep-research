@@ -17,6 +17,7 @@ export interface ProviderReport {
   id: number;
   provider: Provider;
   content?: string;
+  thinking?: string;  // LLM reasoning/metadata shown separately
   status: ResearchStatus;
   errorMessage?: string;
   createdAt: string;
@@ -25,6 +26,7 @@ export interface ProviderReport {
 export interface MasterReport {
   id: number;
   content: string;
+  thinking?: string;  // LLM reasoning/metadata shown separately
   createdAt: string;
 }
 
