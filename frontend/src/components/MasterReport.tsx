@@ -1,31 +1,86 @@
-import { useState } from 'react';
-import { useMutation } from 'react-query';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import toast from 'react-hot-toast';
-import { MasterReport as MasterReportType, Provider } from '../types';
-import { researchApi } from '../services/api';
-import { 
-  DocumentArrowDownIcon, 
+import { useState } from "react";
+import { useMutation, useQuery } from "react-query";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import toast from "react-hot-toast";
+import {
+  MasterReport as MasterReportType,
+  Provider,
+  ModelsResponse,
+} from "../types";
+import { researchApi } from "../services/api";
+import {
+  DocumentArrowDownIcon,
   DocumentMagnifyingGlassIcon,
   SparklesIcon,
   CheckIcon,
   ArrowLeftIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  LightBulbIcon
-} from '@heroicons/react/24/outline';
-import clsx from 'clsx';
+  LightBulbIcon,
+} from "@heroicons/react/24/outline";
+import clsx from "clsx";
 
 interface MasterReportProps {
   sessionId: string;
-  onBack?: () => void;  // Callback to return to individual reports
+  onBack?: () => void; // Callback to return to individual reports
 }
 
 const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
-  const [selectedMergeProvider, setSelectedMergeProvider] = useState<Provider>(Provider.OPENAI);
-  const [masterReport, setMasterReport] = useState<MasterReportType | null>(null);
+  const [selectedMergeProvider, setSelectedMergeProvider] = useState<Provider>(
+    Provider.OPENAI
+  );
+  const [masterReport, setMasterReport] = useState<MasterReportType | null>(
+    null
+  );
   const [showThinking, setShowThinking] = useState(false);
+
+  // Fetch models from backend
+  const { data: modelsData } = useQuery<ModelsResponse>(
+    "models",
+    researchApi.getModels,
+    { staleTime: 5 * 60 * 1000 }
+  );
+
+  // Generate provider options from backend data
+  const getProviderOptions = () => {
+    if (!modelsData) {
+      // Fallback while loading
+      return [
+        { value: Provider.OPENAI, name: "OpenAI", description: "Loading..." },
+        {
+          value: Provider.ANTHROPIC,
+          name: "Anthropic",
+          description: "Loading...",
+        },
+        { value: Provider.XAI, name: "xAI", description: "Loading..." },
+      ];
+    }
+
+    return Object.values(Provider).map((provider) => {
+      const providerData = modelsData[provider];
+      if (providerData) {
+        const defaultModel =
+          providerData.models.find((m) => m.is_default) ||
+          providerData.models[0];
+        return {
+          value: provider,
+          name: `${providerData.provider.name} - ${
+            defaultModel?.display_name || "Unknown"
+          }`,
+          description:
+            defaultModel?.description || providerData.provider.description,
+        };
+      }
+      return {
+        value: provider,
+        name: provider,
+        description: "Unknown provider",
+      };
+    });
+  };
+
+  const providerOptions = getProviderOptions();
 
   // Generate master report mutation
   const generateMutation = useMutation(
@@ -33,10 +88,12 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
     {
       onSuccess: (report) => {
         setMasterReport(report);
-        toast.success('Master report generated successfully!');
+        toast.success("Master report generated successfully!");
       },
       onError: (error: any) => {
-        toast.error(error?.response?.data?.detail || 'Failed to generate master report');
+        toast.error(
+          error?.response?.data?.detail || "Failed to generate master report"
+        );
       },
     }
   );
@@ -48,28 +105,22 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
       onSuccess: (blob) => {
         // Create download link
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
+        const a = document.createElement("a");
+        a.style.display = "none";
         a.href = url;
         a.download = `research_report_${sessionId}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
-        toast.success('PDF exported successfully!');
+
+        toast.success("PDF exported successfully!");
       },
-      onError: (error: any) => {
-        toast.error('Failed to export PDF');
+      onError: () => {
+        toast.error("Failed to export PDF");
       },
     }
   );
-
-  const providerOptions = [
-    { value: Provider.OPENAI, name: 'OpenAI Deep Research', description: 'Best for web-researched synthesis' },
-    { value: Provider.ANTHROPIC, name: 'Claude Sonnet 4.5', description: 'Best for deep reasoning' },
-    { value: Provider.XAI, name: 'xAI Grok 2', description: 'Best for technical accuracy' },
-  ];
 
   const handleGenerateReport = () => {
     generateMutation.mutate();
@@ -77,7 +128,7 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
 
   const handleExportPDF = () => {
     if (!masterReport) {
-      toast.error('Generate master report first');
+      toast.error("Generate master report first");
       return;
     }
     exportPDFMutation.mutate();
@@ -99,9 +150,12 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
 
         <div className="text-center py-12">
           <DocumentMagnifyingGlassIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Generate Master Report</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Generate Master Report
+          </h3>
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
-            Combine insights from all providers into a single, comprehensive report with unified citations
+            Combine insights from all providers into a single, comprehensive
+            report with unified citations
           </p>
 
           {/* Provider Selection */}
@@ -114,10 +168,10 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
                 <label
                   key={option.value}
                   className={clsx(
-                    'flex items-start p-3 rounded-lg border-2 cursor-pointer transition-all',
+                    "flex items-start p-3 rounded-lg border-2 cursor-pointer transition-all",
                     selectedMergeProvider === option.value
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? "border-primary-500 bg-primary-50"
+                      : "border-gray-200 hover:border-gray-300"
                   )}
                 >
                   <input
@@ -128,8 +182,12 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
                     disabled={generateMutation.isLoading}
                   />
                   <div className="ml-3 flex-1 text-left">
-                    <div className="font-medium text-gray-900">{option.name}</div>
-                    <div className="text-sm text-gray-600">{option.description}</div>
+                    <div className="font-medium text-gray-900">
+                      {option.name}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {option.description}
+                    </div>
                   </div>
                   {selectedMergeProvider === option.value && (
                     <CheckIcon className="h-5 w-5 text-primary-600 ml-2 mt-1" />
@@ -143,10 +201,10 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
             onClick={handleGenerateReport}
             disabled={generateMutation.isLoading}
             className={clsx(
-              'inline-flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors',
+              "inline-flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors",
               generateMutation.isLoading
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-primary-600 text-white hover:bg-primary-700'
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-primary-600 text-white hover:bg-primary-700"
             )}
           >
             {generateMutation.isLoading ? (
@@ -183,9 +241,15 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
               </button>
             )}
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">Master Research Report</h3>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Master Research Report
+              </h3>
               <p className="text-sm text-gray-600 mt-1">
-                Synthesized by {providerOptions.find(p => p.value === selectedMergeProvider)?.name}
+                Synthesized by{" "}
+                {
+                  providerOptions.find((p) => p.value === selectedMergeProvider)
+                    ?.name
+                }
               </p>
             </div>
           </div>
@@ -207,7 +271,7 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
             )}
           </button>
         </div>
-        
+
         <div className="text-sm text-gray-500">
           Generated at: {new Date(masterReport.createdAt).toLocaleString()}
         </div>
@@ -222,7 +286,9 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
           >
             <div className="flex items-center space-x-3">
               <LightBulbIcon className="h-5 w-5 text-amber-600" />
-              <span className="font-medium text-amber-800">AI Reasoning Process</span>
+              <span className="font-medium text-amber-800">
+                AI Reasoning Process
+              </span>
               <span className="text-xs text-amber-600 bg-amber-200 px-2 py-0.5 rounded">
                 How this report was generated
               </span>
@@ -233,7 +299,7 @@ const MasterReport: React.FC<MasterReportProps> = ({ sessionId, onBack }) => {
               <ChevronDownIcon className="h-5 w-5 text-amber-600" />
             )}
           </button>
-          
+
           {showThinking && (
             <div className="p-4 pt-0 border-t border-amber-200">
               <div className="prose prose-sm max-w-none text-amber-900 bg-amber-100/50 p-4 rounded-lg">

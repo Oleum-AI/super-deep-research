@@ -22,5 +22,6 @@ dependencies = [
     "reportlab>=4.0.0",
     "beautifulsoup4>=4.12.0",
     "aiohttp>=3.9.0",
-    "websockets>=12.0"
+    "websockets>=12.0",
+    "xai-sdk>=1.5.0",
 ]
