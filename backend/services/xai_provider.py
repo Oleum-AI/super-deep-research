@@ -63,8 +63,8 @@ class XAIProvider(BaseProvider):
                 chat.append(user(self.get_user_prompt(topic, safe_max_output_tokens)))
                 response = await chat.sample()
 
-                # xai_sdk returns the message content directly
-                content = str(response) if response else ""
+                # xai_sdk Response object has .content attribute with the actual message
+                content = response.content if response and response.content else ""
 
                 if content:
                     return {"content": content, "thinking": None}
